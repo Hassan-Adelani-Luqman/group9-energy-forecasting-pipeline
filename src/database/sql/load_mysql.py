@@ -43,8 +43,11 @@ def _clean(value):
 
 def apply_schema(engine) -> None:
     """Run schema.sql statement-by-statement (the driver runs one at a time)."""
-    sql = SCHEMA_PATH.read_text(encoding="utf-8")
-    statements = [s.strip() for s in sql.split(";") if s.strip()]
+    raw = SCHEMA_PATH.read_text(encoding="utf-8")
+    # strip -- line comments before splitting so a ';' inside a comment does
+    # not get mistaken for a statement terminator
+    code = "\n".join(line.split("--", 1)[0] for line in raw.splitlines())
+    statements = [s.strip() for s in code.split(";") if s.strip()]
     with engine.begin() as conn:
         for stmt in statements:
             conn.execute(text(stmt))
