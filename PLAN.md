@@ -56,6 +56,20 @@ XGBoost wins for both regions and is saved as `src/models/artifacts/{region}_win
 - `src/database/mongodb/setup.py` + `sample_documents.json`: document-per-region-per-day model with embedded `hourly_readings` and `daily_stats`, plus a parallel `predictions` collection.
 - ≥3 required queries per DB, captured with results for the report (SQL: latest reading, avg-by-day-of-week join, 7-day rolling window function, date-range filter; Mongo: latest doc, `$group` monthly average, date-range filter, `$unwind` peak-hour lookup).
 
+**Phase 2 status: complete** (merged via PR #2, branch `databases`). Schema, ERD, both loaders, and all queries verified
+by actually running them against fresh containers — not just written:
+
+- MySQL: 4-table 3NF schema (`regions`, `calendar_features`, `energy_readings`, `predictions`) applied cleanly;
+  `load_mysql.py` loaded 145,224 PJME rows + 121,128 AEP rows. 5 queries run (exceeds the ≥3 minimum): latest record
+  *(required)*, date-range *(required)*, avg-by-day-of-week join, 7-day rolling average via window function, peak
+  hour per region. All-time peaks: PJME 62,009 MW (2006-08-02 17:00), AEP 25,695 MW (2008-10-20 14:00).
+- MongoDB: document-per-region-per-day design (`energy_daily`) loaded 6,052 PJME + 5,048 AEP day-documents, plus an
+  empty `predictions` collection for Phase 4. 4 queries run (exceeds the ≥3 minimum): latest document *(required)*,
+  date-range *(required)*, `$group` monthly average, `$unwind` all-time-peak/peak-hour distribution — cross-checked
+  against the SQL peak-hour result and matches exactly.
+- Full captured query output for the report is in [`src/database/query_results.md`](src/database/query_results.md).
+  Design rationale and reproduction steps are in [`src/database/README.md`](src/database/README.md).
+
 ### Phase 3 — CRUD API (Member 3)
 - `src/api/main.py` + `routers/sql_routes.py` + `routers/mongo_routes.py` + `schemas.py` (FastAPI + Pydantic).
 - Parallel endpoint sets for SQL and Mongo: POST/GET(list)/GET(latest)/GET(range)/GET(one)/PUT/DELETE on `readings`, plus POST on `predictions` for both backends.
