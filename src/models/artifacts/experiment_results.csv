@@ -1,0 +1,5 @@
+region,exp_id,model,features,hyperparams,val_rmse,val_mae,val_mape,test_rmse,test_mae,test_mape
+pjme,E1,LinearRegression,calendar+lag,-,1545.075,1212.228,3.631,1627.363,1349.213,3.838
+pjme,E2,XGBoost,calendar+lag+rolling,"{'subsample': 0.7, 'n_estimators': 400, 'max_depth': 5, 'learning_rate': 0.1, 'colsample_bytree': 0.85}",483.076,359.535,1.048,495.117,369.062,0.999
+aep,E1,LinearRegression,calendar+lag,-,567.424,471.217,3.056,575.595,479.52,3.1
+aep,E2,XGBoost,calendar+lag+rolling,"{'subsample': 0.7, 'n_estimators': 400, 'max_depth': 5, 'learning_rate': 0.1, 'colsample_bytree': 0.85}",175.372,135.654,0.859,178.316,137.494,0.866
