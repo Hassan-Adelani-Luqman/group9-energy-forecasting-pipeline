@@ -38,6 +38,17 @@ Creates the skeleton every other phase builds on:
 - Save processed data to `data/processed/` — this is the Day-1 handoff Members 2–4 are blocked on.
 - `src/models/train.py` + `evaluate.py`: Linear Regression baseline, then XGBoost/RandomForest with `GridSearchCV`/`RandomizedSearchCV`; save winning model to `src/models/artifacts/`; fill in the experiment comparison table (RMSE/MAE/MAPE).
 
+**Phase 1 status: complete** (branch `phase1-eda`). Notebook executed end-to-end, 6 analytical questions answered with figures in `reports/figures/`, processed CSVs exported to `data/processed/` (gitignored, regenerable from `data/raw/` via the notebook), and both model experiments run for both regions:
+
+| Exp ID | Region | Model | Features | Key hyperparams | Val RMSE | Val MAE | Val MAPE | Test RMSE | Test MAE | Test MAPE |
+|---|---|---|---|---|---|---|---|---|---|---|
+| E1 | PJME | Linear Regression | calendar + lag_1h/24h/168h | — (baseline) | 1545.1 | 1212.2 | 3.63% | 1627.4 | 1349.2 | 3.84% |
+| E2 | PJME | XGBoost | + rolling_mean_24h/7d, rolling_std_24h | `n_estimators=400, max_depth=5, learning_rate=0.1, subsample=0.7, colsample_bytree=0.85` (via RandomizedSearchCV) | 483.1 | 359.5 | 1.05% | 495.1 | 369.1 | 1.00% |
+| E1 | AEP | Linear Regression | calendar + lag_1h/24h/168h | — (baseline) | 567.4 | 471.2 | 3.06% | 575.6 | 479.5 | 3.10% |
+| E2 | AEP | XGBoost | + rolling_mean_24h/7d, rolling_std_24h | `n_estimators=400, max_depth=5, learning_rate=0.1, subsample=0.7, colsample_bytree=0.85` (via RandomizedSearchCV) | 175.4 | 135.7 | 0.86% | 178.3 | 137.5 | 0.87% |
+
+XGBoost wins for both regions and is saved as `src/models/artifacts/{region}_winning_model.joblib`; the full table is also in `src/models/artifacts/experiment_results.csv`. Notable finding for the report: PJME and AEP are strongly correlated at the same hour with no meaningful lead/lag between them (Q6), and neither region shows a strong long-term STL trend (Q1) — seasonality, weekday/weekend, and lag structure are doing the real predictive work.
+
 ### Phase 2 — Databases (Member 2)
 - `src/database/sql/schema.sql`: 4 tables (`regions`, `calendar_features`, `energy_readings`, `predictions`) with FKs and a unique `(region_id, reading_ts)` constraint.
 - `docs/erd.mmd`: Mermaid ERD matching the schema.
