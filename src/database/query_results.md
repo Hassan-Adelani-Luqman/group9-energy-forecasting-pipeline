@@ -1,6 +1,5 @@
-# Phase 2 — Captured Query Results
+# Captured Query Results
 
-Real output from running the Task 2 queries against fresh containers, for the report. Reproduce with:
 
 ```bash
 docker-compose up -d
