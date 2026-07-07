@@ -5,8 +5,9 @@
 
 -- ==========================================================================
 -- Q1 (required: LATEST RECORD)
--- Most recent reading for each region. Uses a correlated subquery on the
--- (region_id, reading_ts) index to find each region's max timestamp.
+-- Most recent reading for each region. A derived table finds each region's
+-- max timestamp (two rows, resolved from the (region_id, reading_ts) index),
+-- then joins back to pull that row's measures.
 -- ==========================================================================
 SELECT  r.region_code,
         er.reading_ts,
@@ -14,11 +15,13 @@ SELECT  r.region_code,
         er.split
 FROM    energy_readings er
 JOIN    regions r ON r.region_id = er.region_id
-WHERE   er.reading_ts = (
-            SELECT MAX(er2.reading_ts)
-            FROM   energy_readings er2
-            WHERE  er2.region_id = er.region_id
-        )
+JOIN    (
+            SELECT region_id, MAX(reading_ts) AS max_ts
+            FROM   energy_readings
+            GROUP BY region_id
+        ) latest
+       ON latest.region_id = er.region_id
+      AND latest.max_ts   = er.reading_ts
 ORDER BY r.region_code;
 
 -- ==========================================================================
