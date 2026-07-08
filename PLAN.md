@@ -76,6 +76,8 @@ by actually running them against fresh containers — not just written:
 - Can scaffold routing/config on Day 1 against placeholder data; wire real queries once Phase 2's schema + loaded data land.
 - Smoke-test every endpoint via FastAPI's `/docs`; save example request/response pairs for the report.
 
+**Phase 3 status: complete** (branch `phase3-api`). FastAPI application built with SQLAlchemy for MySQL and PyMongo for MongoDB. Endpoints for CRUD operations on `readings` and `predictions` have been implemented. Request/response pairs are documented in `src/api/api_examples.md`.
+
 ### Phase 4 — Forecast Script (Member 4)
 - `src/forecast/run_forecast.py`: fetch a trailing ~14-day window via the API's `/range` endpoint (not `/latest` alone — needed for `lag_168h`), run it through the **same** `src/preprocessing/features.py` from Phase 1 (import, don't reimplement), load the saved model from `src/models/artifacts/`, predict the next hour(s), POST the result to `/api/sql/predictions` and/or `/api/mongo/predictions`.
 - Log a clear before/after (input window → prediction) for a report screenshot.
