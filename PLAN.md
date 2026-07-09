@@ -83,6 +83,22 @@ by actually running them against fresh containers — not just written:
 - Log a clear before/after (input window → prediction) for a report screenshot.
 - Member 4 also compiles the final `reports/report.pdf` from all members' sections (problem definition, Task 1–4 write-ups, team contributions, limitations).
 
+**Phase 4 status: complete** (branch `phase4-forecast`). `run_forecast.py` runs the full fetch → preprocess → predict →
+write-back loop end to end, verified live against the running API and containers:
+
+- Anchors the forecast window on the **latest reading actually in the DB** (via `/latest`), not wall-clock time —
+  the dataset is historical and frozen at 2018-08-03, so `datetime.now()` would fetch an empty window.
+- Fetches a 14-day trailing window via `/range`, extends it with one empty row at the target hour, and runs it
+  through Phase 1's `build_feature_set()` (imported, not reimplemented) so the target's lag/rolling features are
+  computed from real preceding history.
+- Loads each region's Phase 1 winning model (`src/models/artifacts/{region}_winning_model.joblib`) and predicts the
+  next hour, then POSTs to both `/api/sql/predictions` and `/api/mongo/predictions`.
+- Verified live: AEP forecast (13,710.5 MW for 2018-08-03 01:00) written to both predictions stores in one run,
+  confirmed against the database afterward. PJME hit the unique `(region, target_ts, model)` constraint from an
+  earlier manual API test and was correctly skipped with a warning instead of crashing — a real, reproducible
+  robustness case, not a failure.
+- Full captured run (both regions) is in [`src/forecast/forecast_example.md`](src/forecast/forecast_example.md).
+
 ### Cross-cutting: Git workflow
 One branch per member per phase (`phase1-eda`, `phase2-db`, `phase3-api`, `phase4-forecast`) merged via PR into `main`. Commit incrementally with specific messages (`feat: add lag and rolling-window features`, not `wip`/`final`) — this is what the ≥4-commits-per-person rubric row is actually checking for.
 
